@@ -265,7 +265,7 @@ language plpgsql
 set search_path = ''
 as $$
 begin
-  if auth.role() <> 'service_role' and not private.is_admin() then
+  if auth.role() <> 'service_role' and current_user not in ('postgres', 'supabase_admin') and not private.is_admin() then
     new.role := old.role;
     new.status := old.status;
     new.must_change_password := old.must_change_password;
@@ -438,6 +438,7 @@ security definer
 set search_path = ''
 as $$
 declare assignment_row public.assignments%rowtype;
+  owner_user_id uuid;
 begin
   select * into assignment_row
   from public.assignments
@@ -455,9 +456,13 @@ begin
   where id = target_assignment_id
   returning * into assignment_row;
 
+  select f.owner_id into owner_user_id
+  from public.campaigns c join public.farms f on f.id = c.farm_id
+  where c.id = assignment_row.campaign_id;
+
   update public.profiles
   set completed_campaigns = completed_campaigns + 1
-  where id = assignment_row.worker_id;
+  where id in (assignment_row.worker_id, owner_user_id);
 
   insert into public.analytics_events(event_name, actor_id, entity_id)
   values ('campaign_completed', auth.uid(), assignment_row.id);

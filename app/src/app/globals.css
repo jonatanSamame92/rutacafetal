@@ -222,14 +222,14 @@ select {
   display: block;
   margin-bottom: 0.45rem;
   color: var(--foreground);
-  font-size: 0.925rem;
+  font-size: 0.875rem;
   font-weight: 650;
 }
 
 .field-help {
   margin-top: 0.4rem;
   color: var(--muted);
-  font-size: 0.825rem;
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
@@ -252,6 +252,11 @@ select {
   color: var(--primary-strong);
 }
 
+.header-campaigns-link,
+.header-login-link {
+  display: none;
+}
+
 .skeleton {
   border-radius: 0.5rem;
   background: var(--surface-strong);
@@ -267,6 +272,14 @@ select {
   .button-secondary:hover { background: var(--primary-soft); }
   .button-danger:hover { background: color-mix(in srgb, var(--danger) 10%, transparent); }
   .button-quiet:hover { background: var(--surface-strong); }
+}
+
+@media (min-width: 40rem) {
+  .header-campaigns-link { display: inline-flex; }
+}
+
+@media (min-width: 48rem) {
+  .header-login-link { display: inline-flex; }
 }
 
 @media (prefers-reduced-motion: reduce) {

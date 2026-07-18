@@ -5,15 +5,19 @@ colors:
   primary: "#24513A"
   primary-strong: "#173624"
   primary-soft: "#E7F0E5"
-  accent: "#B85C38"
+  accent: "#A64B2F"
   background: "#F8FAF7"
   surface: "#FFFFFF"
   surface-muted: "#EFF3EE"
   foreground: "#17251C"
   muted: "#53645A"
   border: "#CBD5CC"
-  danger: "#A63535"
-  warning: "#8A5A12"
+  danger: "#9F3030"
+  warning: "#80520F"
+  background-dark: "#101712"
+  surface-dark: "#172019"
+  foreground-dark: "#EDF4ED"
+  muted-dark: "#B7C5BA"
 typography:
   display:
     fontFamily: "Geist, Arial, sans-serif"
@@ -27,6 +31,16 @@ typography:
     fontWeight: 400
     lineHeight: 1.6
     letterSpacing: "normal"
+  label:
+    fontFamily: "Geist, Arial, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 650
+    lineHeight: 1.4
+  supporting:
+    fontFamily: "Geist, Arial, sans-serif"
+    fontSize: "0.75rem"
+    fontWeight: 400
+    lineHeight: 1.5
 rounded:
   sm: "8px"
   md: "12px"
@@ -67,7 +81,7 @@ El verde cafetal identifica navegación, confianza y acciones primarias. El terr
 
 ## Typography
 
-Geist mantiene letras abiertas y una carga pequeña mediante `next/font`. El cuerpo nunca baja de 16 px; encabezados usan balance de texto y los párrafos se limitan a 70 caracteres por línea.
+Geist mantiene letras abiertas y una carga pequeña mediante `next/font`. El cuerpo usa 16 px; etiquetas y ayudas breves usan los pasos documentados de 14 y 12 px. Los encabezados usan balance de texto y los párrafos se limitan a 70 caracteres por línea.
 
 ## Elevation
 
