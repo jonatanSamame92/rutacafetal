@@ -1,0 +1,9 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
+
+export const metadata: Metadata = { title: "Crear perfil" };
+
+export default function RegisterPage() {
+  return <><SiteHeader /><main className="mx-auto max-w-3xl px-4 py-12 sm:px-6"><p className="text-sm font-semibold tracking-wide text-[#74502d]">PRÓXIMO PASO</p><h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#173624]">Crea tu perfil en Rutacafetal</h1><p className="mt-4 max-w-xl leading-7 text-[#526257]">Estamos preparando el registro seguro. Elegirás un perfil, completarás solo los datos necesarios y podrás editarlo cuando quieras.</p><div className="mt-8 grid gap-5 sm:grid-cols-2"><section className="rounded-2xl border border-[#dcd7c9] bg-[#fbfaf5] p-6"><p className="text-sm font-semibold text-[#74502d]">SOY TRABAJADOR</p><h2 className="mt-2 text-2xl font-semibold text-[#173624]">Quiero encontrar campañas</h2><p className="mt-3 text-sm leading-6 text-[#526257]">Mostrarás experiencia, cultivos que conoces y tu disponibilidad.</p><button disabled className="mt-6 min-h-11 w-full rounded-xl bg-[#dfe7da] px-4 font-semibold text-[#56705a]">Registro próximamente</button></section><section className="rounded-2xl border border-[#dcd7c9] bg-[#fbfaf5] p-6"><p className="text-sm font-semibold text-[#74502d]">SOY PATRÓN</p><h2 className="mt-2 text-2xl font-semibold text-[#173624]">Quiero publicar una campaña</h2><p className="mt-3 text-sm leading-6 text-[#526257]">Registrarás tu finca y explicarás pago, fechas y condiciones de trabajo.</p><button disabled className="mt-6 min-h-11 w-full rounded-xl bg-[#dfe7da] px-4 font-semibold text-[#56705a]">Registro próximamente</button></section></div><p className="mt-8 text-sm text-[#526257]">¿Ya tienes perfil? <Link className="font-semibold text-[#28533b] underline underline-offset-4" href="/ingresar">Ingresar</Link></p></main></>;
+}
