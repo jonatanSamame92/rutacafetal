@@ -7,7 +7,9 @@ This repository is a small workspace whose product application lives in `app/`.
 - `app/src/app/`: Next.js App Router routes, layouts, and global styles.
 - `app/src/components/`: reusable UI components such as campaign cards and the site header.
 - `app/src/lib/`: shared domain data and utilities.
-- `app/public/`: static assets served by Next.js.
+- `app/public/`: static assets and the lightweight service worker.
+- `supabase/migrations/`: schema, RPCs, RLS policies, and Jaén location seed.
+- `app/src/**/*.test.ts`: Vitest unit and security-contract tests.
 - Root `*.md` files: product, technical, design, and implementation references. Read these before making product-level changes.
 
 Use the `@/*` import alias for modules below `app/src`; for example, `@/components/campaign-card`.
@@ -19,10 +21,11 @@ Run commands from the repository root:
 - `npm run dev`: starts the Next.js development server through `app/`.
 - `npm run build`: creates the production build.
 - `npm run start`: serves an already-built production application.
+- `npm run lint`, `npm run typecheck`, and `npm test`: run quality gates.
 
 For app-specific commands, use `npm --prefix app run <script>`. Install dependencies with `npm install` at the root and, when changing app dependencies, `npm --prefix app install`.
 
-There is no automated test suite yet. Before opening a pull request, run `npm run build` and manually check the relevant route in the browser. Add focused tests alongside new complex behavior once a test runner is introduced.
+Vitest covers validation and database security contracts. Name tests `*.test.ts`, keep them next to the module under test, and run `npm test`. For auth or RLS changes, add a regression assertion and manually verify worker, farmer, admin, and anonymous access. Before a pull request, run all four quality commands and check 375px mobile layout.
 
 ## Coding Style & Naming Conventions
 

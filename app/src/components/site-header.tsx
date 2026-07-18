@@ -1,5 +1,27 @@
 import Link from "next/link";
+import { getAuthContext } from "@/lib/auth";
 
-export function SiteHeader() {
-  return <header className="border-b border-[#dcd7c9] bg-[#fbfaf5]"><div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8"><Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-[#173624]"><span className="flex size-8 items-center justify-center rounded-full bg-[#28533b] text-sm text-white" aria-hidden="true">R</span><span>Rutacafetal</span></Link><nav className="flex items-center gap-3 text-sm font-medium" aria-label="Navegación principal"><Link className="hidden text-[#405246] hover:text-[#173624] sm:inline" href="/campanas">Ver campañas</Link><Link className="rounded-full bg-[#28533b] px-4 py-2 text-white transition hover:bg-[#173624]" href="/registro">Crear perfil</Link></nav></div></header>;
+export async function SiteHeader() {
+  const auth = await getAuthContext();
+  return (
+    <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_94%,transparent)] backdrop-blur-md">
+      <div className="page-shell flex min-h-16 items-center justify-between gap-4">
+        <Link href="/" className="flex min-h-12 items-center gap-2.5 font-semibold tracking-tight text-[var(--primary-strong)]" aria-label="Rutacafetal, inicio">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-[var(--primary)] text-base font-bold text-white" aria-hidden="true">R</span>
+          <span>Rutacafetal</span>
+        </Link>
+        <nav className="flex items-center gap-2 text-sm font-medium" aria-label="Navegación principal">
+          <Link className="button-quiet hidden sm:inline-flex" href="/campanas">Campañas</Link>
+          {auth ? (
+            <Link className="button-primary" href="/panel">Mi panel</Link>
+          ) : (
+            <>
+              <Link className="button-quiet hidden md:inline-flex" href="/ingresar">Ingresar</Link>
+              <Link className="button-primary" href="/registro">Solicitar acceso</Link>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
 }

@@ -1,5 +1,6 @@
 # Dependencias y builds locales
 node_modules/
+node_modules.incomplete/
 node_modules.*
 .next/
 out/
@@ -21,3 +22,9 @@ Thumbs.db
 # Archivos generados por herramientas locales
 .vercel/
 .turbo/
+__pycache__/
+*.pyc
+
+# Supabase local runtime
+supabase/.branches/
+supabase/.temp/

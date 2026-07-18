@@ -1,8 +1,68 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CampaignCard } from "@/components/campaign-card";
-import { SiteHeader } from "@/components/site-header";
-import { campaigns } from "@/lib/campaigns";
+import { PublicShell } from "@/components/public-shell";
+import { getLocations, getPublicCampaigns } from "@/lib/data/campaigns";
 
-export default function Home() {
-  return <><SiteHeader /><main><section className="border-b border-[#dcd7c9] bg-[#e7efdc]"><div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.2fr_0.8fr] md:py-20 lg:px-8"><div className="max-w-2xl"><p className="text-sm font-semibold tracking-wide text-[#28533b]">TRABAJO AGRÍCOLA EN JAÉN Y ZONAS CERCANAS</p><h1 className="mt-4 text-4xl font-semibold leading-[1.05] tracking-tight text-[#173624] sm:text-5xl">Encuentra trabajo de café cerca de ti.</h1><p className="mt-5 max-w-xl text-lg leading-8 text-[#405246]">Campañas claras, condiciones visibles y contacto seguro cuando ambas partes deciden avanzar.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/campanas" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#28533b] px-5 font-semibold text-white transition hover:bg-[#173624]">Ver campañas disponibles</Link><Link href="/registro?rol=farmer" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#28533b] px-5 font-semibold text-[#28533b] transition hover:bg-[#f7f4ec]">Publicar una campaña</Link></div></div><aside className="rounded-3xl bg-[#28533b] p-6 text-[#f7f4ec] shadow-sm sm:p-8"><p className="text-sm font-semibold tracking-wide text-[#dce8cc]">ASÍ FUNCIONA</p><ol className="mt-6 space-y-5"><li className="flex gap-4"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#dce8cc] text-sm font-bold text-[#173624]">1</span><p><strong className="block">Elige una campaña</strong><span className="text-sm text-[#e7efdc]">Revisa pago, fechas, zona y beneficios.</span></p></li><li className="flex gap-4"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#dce8cc] text-sm font-bold text-[#173624]">2</span><p><strong className="block">Postula en pocos pasos</strong><span className="text-sm text-[#e7efdc]">Tu perfil muestra experiencia y disponibilidad.</span></p></li><li className="flex gap-4"><span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#dce8cc] text-sm font-bold text-[#173624]">3</span><p><strong className="block">Coordina por WhatsApp</strong><span className="text-sm text-[#e7efdc]">El contacto se abre tras la aceptación.</span></p></li></ol></aside></div></section><section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-sm font-semibold tracking-wide text-[#74502d]">CAMPAÑAS DISPONIBLES</p><h2 className="mt-2 text-3xl font-semibold tracking-tight text-[#173624]">Oportunidades para esta campaña</h2></div><Link href="/campanas" className="font-semibold text-[#28533b] underline decoration-[#9caf90] underline-offset-4 hover:text-[#173624]">Ver todas las campañas</Link></div><div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{campaigns.map((campaign) => <CampaignCard key={campaign.slug} campaign={campaign} />)}</div></section><section className="border-y border-[#dcd7c9] bg-[#fbfaf5]"><div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-2 lg:px-8"><div><p className="text-sm font-semibold tracking-wide text-[#74502d]">PARA TRABAJADORES</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#173624]">No pierdas tiempo preguntando de finca en finca.</h2><p className="mt-3 leading-7 text-[#526257]">Compara lo importante antes de postular: pago, duración, ubicación, comida y alojamiento.</p></div><div><p className="text-sm font-semibold tracking-wide text-[#74502d]">PARA PATRONES</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-[#173624]">Ordena tus postulaciones y encuentra tu cuadrilla.</h2><p className="mt-3 leading-7 text-[#526257]">Publica una campaña clara. Rutacafetal la revisa antes de mostrarla a trabajadores.</p></div></div></section></main><footer className="bg-[#173624] px-4 py-8 text-sm text-[#dce8cc] sm:px-6 lg:px-8"><div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><p className="font-semibold text-white">Rutacafetal</p><p>Conectamos trabajo y confianza en el campo.</p></div></footer></>;
+export default async function HomePage() {
+  const [campaigns, locations] = await Promise.all([getPublicCampaigns(), getLocations()]);
+  return (
+    <PublicShell>
+      <section className="border-b border-[var(--border)] bg-[var(--primary-soft)]">
+        <div className="page-shell grid min-h-[calc(100dvh-6.5rem)] items-center gap-9 py-10 md:grid-cols-[1.03fr_0.97fr] md:py-14">
+          <div className="max-w-2xl">
+            <p className="font-semibold text-[var(--accent)]">Trabajo cafetalero en Jaén</p>
+            <h1 className="mt-4 max-w-[13ch] text-5xl font-semibold leading-[1.02] text-[var(--primary-strong)] sm:text-6xl lg:text-7xl">Encuentra una campaña que te convenga.</h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-[var(--muted)]">Compara pago, fechas, comida y alojamiento antes de postular. El contacto se comparte solo después de una aceptación.</p>
+            <form action="/campanas" className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row" aria-label="Buscar campañas por distrito">
+              <label className="sr-only" htmlFor="district">Distrito</label>
+              <select className="select-field sm:flex-1" id="district" name="district" defaultValue="">
+                <option value="">Todos los distritos</option>
+                {locations.map((location) => <option key={location.id} value={location.district}>{location.district}</option>)}
+              </select>
+              <button className="button-primary whitespace-nowrap" type="submit">Buscar campañas</button>
+            </form>
+          </div>
+          <div className="relative min-h-[22rem] overflow-hidden rounded-2xl md:min-h-[34rem]">
+            <Image src="/images/hero-cafetal.png" alt="Dos caficultores coordinan una jornada de cosecha en un cafetal de Jaén" fill priority sizes="(max-width: 768px) 100vw, 48vw" className="object-cover object-[62%_center]" />
+          </div>
+        </div>
+      </section>
+
+      <section className="page-shell py-16 sm:py-20">
+        <h2 className="text-3xl font-semibold text-[var(--primary-strong)] sm:text-4xl">Campañas disponibles</h2>
+        <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">Cada ficha muestra las condiciones principales para que puedas comparar sin llamar finca por finca.</p>
+        {campaigns.length > 0 ? (
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {campaigns.slice(0, 3).map((campaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}
+          </div>
+        ) : (
+          <div className="surface mt-8 p-6"><h3 className="text-lg font-semibold">Aún no hay campañas publicadas</h3><p className="mt-2 text-[var(--muted)]">Estamos revisando las primeras oportunidades. Vuelve pronto o solicita acceso como patrón.</p></div>
+        )}
+        <Link href="/campanas" className="button-secondary mt-8">Ver todas las campañas</Link>
+      </section>
+
+      <section className="border-y border-[var(--border)] bg-[var(--surface)]">
+        <div className="page-shell grid gap-10 py-16 md:grid-cols-2 md:gap-16">
+          <div>
+            <h2 className="text-3xl font-semibold text-[var(--primary-strong)]">Decide con condiciones claras</h2>
+            <p className="mt-4 max-w-xl leading-7 text-[var(--muted)]">Rutacafetal muestra pago, duración, ubicación aproximada y beneficios antes de que alguien se comprometa.</p>
+          </div>
+          <ol className="space-y-6">
+            <li className="grid grid-cols-[2rem_1fr] gap-3"><span className="font-mono font-semibold text-[var(--accent)]">1</span><div><h3 className="font-semibold">Revisa la campaña</h3><p className="mt-1 text-sm leading-6 text-[var(--muted)]">Compara trabajo, fechas, pago y condiciones.</p></div></li>
+            <li className="grid grid-cols-[2rem_1fr] gap-3"><span className="font-mono font-semibold text-[var(--accent)]">2</span><div><h3 className="font-semibold">Postula con tu perfil</h3><p className="mt-1 text-sm leading-6 text-[var(--muted)]">El patrón ve tu experiencia, distrito y disponibilidad.</p></div></li>
+            <li className="grid grid-cols-[2rem_1fr] gap-3"><span className="font-mono font-semibold text-[var(--accent)]">3</span><div><h3 className="font-semibold">Coordina por WhatsApp</h3><p className="mt-1 text-sm leading-6 text-[var(--muted)]">El botón aparece al patrón después de aceptar la postulación.</p></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <section className="page-shell grid gap-8 py-16 sm:py-20 md:grid-cols-[1fr_auto] md:items-center">
+        <div>
+          <h2 className="text-3xl font-semibold text-[var(--primary-strong)]">¿Buscas trabajadores para tu finca?</h2>
+          <p className="mt-3 max-w-2xl leading-7 text-[var(--muted)]">Registra una finca, envía la campaña a revisión y recibe postulaciones ordenadas en un solo lugar.</p>
+        </div>
+        <Link href="/registro?rol=farmer" className="button-primary">Solicitar acceso como patrón</Link>
+      </section>
+    </PublicShell>
+  );
 }

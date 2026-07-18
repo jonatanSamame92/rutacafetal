@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
+import { LoginForm } from "@/components/forms/login-form";
+import { PublicShell } from "@/components/public-shell";
 
-export const metadata: Metadata = { title: "Ingresar" };
+export const metadata: Metadata = { title: "Ingresar", robots: { index: false } };
 
-export default function SignInPage() {
-  return <><SiteHeader /><main className="mx-auto max-w-lg px-4 py-12 sm:px-6"><p className="text-sm font-semibold tracking-wide text-[#74502d]">ACCESO SEGURO</p><h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#173624]">Ingresa a tu cuenta</h1><div className="mt-7 rounded-2xl border border-[#dcd7c9] bg-[#fbfaf5] p-6"><p className="leading-7 text-[#526257]">El acceso estará disponible cuando se configure el método de verificación de teléfono o correo para el primer lanzamiento.</p><Link href="/registro" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl border border-[#28533b] px-4 font-semibold text-[#28533b] transition hover:bg-[#eef4e6]">Volver a crear perfil</Link></div></main></>;
+export default function LoginPage() {
+  return (
+    <PublicShell>
+      <div className="page-shell grid min-h-[70dvh] place-items-center py-12">
+        <div className="w-full max-w-md">
+          <h1 className="text-4xl font-semibold text-[var(--primary-strong)]">Ingresa a tu cuenta</h1>
+          <p className="mt-3 leading-7 text-[var(--muted)]">Usa el celular y la contraseña que recibiste al aprobarse tu solicitud.</p>
+          <LoginForm />
+          <p className="mt-5 text-center text-sm text-[var(--muted)]">¿Todavía no tienes cuenta? <Link href="/registro" className="font-semibold text-[var(--primary-strong)] underline">Solicita acceso</Link>.</p>
+        </div>
+      </div>
+    </PublicShell>
+  );
 }

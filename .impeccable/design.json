@@ -1,0 +1,19 @@
+{
+  "project": "Rutacafetal",
+  "source": "DESIGN.md",
+  "components": {
+    "button-primary": "48px minimum, solid primary, white label, 12px radius",
+    "button-secondary": "48px minimum, primary border, transparent surface",
+    "field": "Visible label, 48px minimum, 8px radius, 3px focus ring",
+    "surface": "1px semantic border, 12px radius, no heavy elevation",
+    "status-message": "Text and color communicate state together",
+    "campaign-card": "Conditions first, whole-card link, demo label when applicable"
+  },
+  "checks": [
+    "WCAG 2.2 AA contrast",
+    "375px without horizontal scrolling",
+    "44px minimum touch target",
+    "prefers-reduced-motion",
+    "phone number never rendered publicly"
+  ]
+}

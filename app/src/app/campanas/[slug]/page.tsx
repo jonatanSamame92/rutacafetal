@@ -1,14 +1,56 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/site-header";
-import { campaigns, getCampaign } from "@/lib/campaigns";
+import { ApplicationForm } from "@/components/forms/application-form";
+import { PublicShell } from "@/components/public-shell";
+import { getAuthContext } from "@/lib/auth";
+import { getPublicCampaign } from "@/lib/data/campaigns";
+import { formatDate, formatMoney, paymentModeLabels, workTypeLabels } from "@/lib/format";
 
-export function generateStaticParams() { return campaigns.map(({ slug }) => ({ slug })); }
-export function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { return params.then(({ slug }) => { const campaign = getCampaign(slug); return { title: campaign ? `${campaign.title} — ${campaign.farm}` : "Campaña no encontrada" }; }); }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const campaign = await getPublicCampaign((await params).slug);
+  return campaign ? { title: campaign.title, description: `${campaign.farmName}, ${campaign.district}. ${formatMoney(campaign.paymentAmount)} ${paymentModeLabels[campaign.paymentMode]}.` } : { title: "Campaña no encontrada" };
+}
 
 export default async function CampaignDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const campaign = getCampaign((await params).slug);
+  const campaign = await getPublicCampaign((await params).slug);
   if (!campaign) notFound();
-  return <><SiteHeader /><main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8"><Link className="text-sm font-semibold text-[#28533b] underline underline-offset-4" href="/campanas">← Volver a campañas</Link><div className="mt-6 grid gap-8 lg:grid-cols-[1fr_19rem]"><article><p className="text-sm font-semibold tracking-wide text-[#74502d]">{campaign.workType.toUpperCase()} · {campaign.province.toUpperCase()}</p><h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#173624]">{campaign.title}</h1><p className="mt-2 text-lg text-[#526257]">{campaign.farm} · {campaign.district}</p><div className="mt-7 rounded-2xl border border-[#dcd7c9] bg-[#fbfaf5] p-5"><h2 className="text-lg font-semibold text-[#173624]">Sobre el trabajo</h2><p className="mt-3 leading-7 text-[#405246]">{campaign.description}</p></div><div className="mt-5 grid gap-5 sm:grid-cols-2"><section><h2 className="font-semibold text-[#173624]">Ubicación</h2><p className="mt-2 leading-7 text-[#526257]">{campaign.locationReference}</p></section><section><h2 className="font-semibold text-[#173624]">Seguridad y normas</h2><p className="mt-2 leading-7 text-[#526257]">{campaign.safetyNote}</p></section></div></article><aside className="h-fit rounded-2xl border border-[#cbd8be] bg-[#eef4e6] p-5"><p className="text-sm font-semibold text-[#28533b]">CONDICIONES CLARAS</p><dl className="mt-5 space-y-4 text-sm"><div><dt className="text-[#66756c]">Fechas estimadas</dt><dd className="mt-0.5 font-semibold text-[#173624]">{campaign.startDate} — {campaign.endDate}</dd></div><div><dt className="text-[#66756c]">Pago</dt><dd className="mt-0.5 font-semibold text-[#173624]">{campaign.paymentDetail} ({campaign.payment.toLowerCase()})</dd></div><div><dt className="text-[#66756c]">Beneficios</dt><dd className="mt-0.5 font-semibold text-[#173624]">{campaign.includesFood ? "Comida incluida" : "Sin comida"} · {campaign.includesLodging ? "Alojamiento incluido" : "Sin alojamiento"}</dd></div><div><dt className="text-[#66756c]">Cupos</dt><dd className="mt-0.5 font-semibold text-[#173624]">{campaign.workersNeeded} trabajadores</dd></div></dl><Link href="/registro?rol=worker" className="mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[#28533b] px-4 font-semibold text-white transition hover:bg-[#173624]">Me interesa</Link><p className="mt-3 text-center text-xs leading-5 text-[#526257]">Crearás tu perfil antes de postular. El contacto se comparte solo después de una aceptación.</p></aside></div></main></>;
+  const auth = await getAuthContext();
+
+  return (
+    <PublicShell>
+      <div className="page-shell py-8 sm:py-12">
+        <Link href="/campanas" className="inline-flex min-h-11 items-center font-semibold text-[var(--primary-strong)] underline decoration-[var(--border-strong)] underline-offset-4">Volver a campañas</Link>
+        <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_21rem]">
+          <article>
+            <p className="font-semibold text-[var(--accent)]">{workTypeLabels[campaign.workType]} en {campaign.district}</p>
+            <h1 className="mt-2 text-4xl font-semibold text-[var(--primary-strong)] sm:text-5xl">{campaign.title}</h1>
+            <p className="mt-3 text-lg text-[var(--muted)]">{campaign.farmName}, provincia de {campaign.province}</p>
+            {campaign.isDemo && <p className="status-message mt-6">Esta es una campaña de ejemplo. No representa una oferta de trabajo activa.</p>}
+
+            <section className="mt-8 border-t border-[var(--border)] pt-7"><h2 className="text-2xl font-semibold">El trabajo</h2><p className="mt-3 max-w-[70ch] leading-7 text-[var(--muted)]">{campaign.description}</p></section>
+            <div className="mt-8 grid gap-8 border-t border-[var(--border)] pt-7 sm:grid-cols-2">
+              <section><h2 className="text-xl font-semibold">Ubicación aproximada</h2><p className="mt-3 leading-7 text-[var(--muted)]">{campaign.locationReference}</p></section>
+              <section><h2 className="text-xl font-semibold">Seguridad y normas</h2><p className="mt-3 leading-7 text-[var(--muted)]">{campaign.safetyNote}</p></section>
+            </div>
+            <section className="mt-8 border-t border-[var(--border)] pt-7"><h2 className="text-xl font-semibold">Confianza de la finca</h2><p className="mt-3 text-[var(--muted)]">{campaign.rating > 0 ? `${campaign.rating.toFixed(1)} de 5, basada en campañas completadas y comentarios moderados.` : "La finca aún no tiene calificaciones públicas."}</p></section>
+          </article>
+
+          <aside className="surface h-fit p-5 lg:sticky lg:top-24">
+            <h2 className="text-lg font-semibold text-[var(--primary-strong)]">Condiciones</h2>
+            <dl className="mt-5 space-y-4 text-sm">
+              <div><dt className="text-[var(--muted)]">Fechas estimadas</dt><dd className="mt-1 font-semibold">{formatDate(campaign.startDate)} al {formatDate(campaign.endDate)}</dd></div>
+              <div><dt className="text-[var(--muted)]">Pago</dt><dd className="mt-1 font-semibold">{formatMoney(campaign.paymentAmount)} {paymentModeLabels[campaign.paymentMode]}</dd></div>
+              <div><dt className="text-[var(--muted)]">Beneficios</dt><dd className="mt-1 font-semibold">{campaign.includesFood ? "Comida incluida" : "Sin comida"}. {campaign.includesLodging ? "Alojamiento incluido" : "Sin alojamiento"}.</dd></div>
+              <div><dt className="text-[var(--muted)]">Cupos</dt><dd className="mt-1 font-semibold">{campaign.workersNeeded} personas</dd></div>
+            </dl>
+            <div className="mt-6 border-t border-[var(--border)] pt-5">
+              {campaign.isDemo ? <Link href="/registro?rol=worker" className="button-primary w-full">Solicitar acceso</Link> : auth?.profile.role === "worker" ? <ApplicationForm campaignId={campaign.id} /> : <Link href={auth ? "/panel" : "/ingresar"} className="button-primary w-full">{auth ? "Ir a mi panel" : "Ingresar para postular"}</Link>}
+              <p className="mt-3 text-center text-xs leading-5 text-[var(--muted)]">Tu teléfono no se publica. El patrón puede abrir WhatsApp después de aceptar.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </PublicShell>
+  );
 }

@@ -1,0 +1,3 @@
+-- Los datos reales no deben sembrarse en el repositorio.
+-- Las campañas de demostración se mantienen en app/src/lib/demo-data.ts y se
+-- muestran únicamente cuando no hay un proyecto Supabase configurado.

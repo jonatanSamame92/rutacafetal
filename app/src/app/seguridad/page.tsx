@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { LegalPage } from "@/components/legal-page";
+
+export const metadata: Metadata = { title: "Seguridad" };
+export default function SafetyPage() { return <LegalPage title="Trabaja con más seguridad" intro="La plataforma reduce incertidumbre, pero una coordinación cuidadosa sigue siendo necesaria antes de ir a una finca."><section><h2>Antes de aceptar</h2><ul><li>Confirma pago, fechas, horario, alimentación y alojamiento.</li><li>Pide una referencia clara del punto de encuentro.</li><li>Informa a una persona de confianza dónde estarás.</li><li>No entregues dinero para asegurar un cupo de trabajo.</li></ul></section><section><h2>Durante la campaña</h2><p>Respeta las indicaciones de seguridad y conserva evidencia de los acuerdos de pago. Si una condición cambia, aclárala antes de continuar.</p></section><section><h2>Reporta de forma privada</h2><p>Los casos de no pago, maltrato, robo, fraude o condiciones inseguras se envían al administrador. El reporte no se publica automáticamente.</p></section></LegalPage>; }
