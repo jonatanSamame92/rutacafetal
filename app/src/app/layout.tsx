@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PwaRegistration } from "@/components/pwa-registration";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -35,14 +36,20 @@ export const viewport: Viewport = {
   ],
 };
 
+const THEME_INIT_SCRIPT = `(function(){var s=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark')}else if(s==='light'){document.documentElement.classList.add('light')}})();`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <a href="#contenido" className="skip-link">Saltar al contenido</a>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <PwaRegistration />
       </body>
     </html>
   );
 }
+

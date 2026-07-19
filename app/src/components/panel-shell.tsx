@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Profile } from "@/lib/auth";
 
 export function PanelShell({ profile, children }: { profile: Profile; children: React.ReactNode }) {
@@ -14,7 +15,10 @@ export function PanelShell({ profile, children }: { profile: Profile; children: 
       <header className="border-b border-[var(--border)] bg-[var(--surface)]">
         <div className="page-shell flex min-h-16 items-center justify-between gap-4">
           <Link href="/panel" className="flex min-h-12 items-center gap-2.5 font-semibold text-[var(--primary-strong)]"><span className="flex size-9 items-center justify-center rounded-lg bg-[var(--primary)] text-white" aria-hidden="true">R</span><span>Rutacafetal</span></Link>
-          <form action={logoutAction}><button type="submit" className="button-quiet">Salir</button></form>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <form action={logoutAction}><button type="submit" className="button-quiet">Salir</button></form>
+          </div>
         </div>
       </header>
       <div className="page-shell grid gap-6 py-6 lg:grid-cols-[13rem_1fr] lg:py-10">

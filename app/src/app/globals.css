@@ -27,7 +27,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     color-scheme: dark;
     --background: #101712;
     --surface: #172019;
@@ -46,6 +46,26 @@
     --focus: #f0a46c;
     --shadow-short: 0 4px 8px rgb(0 0 0 / 0.25);
   }
+}
+
+:root.dark {
+  color-scheme: dark;
+  --background: #101712;
+  --surface: #172019;
+  --surface-muted: #1d2820;
+  --surface-strong: #26362a;
+  --foreground: #edf4ed;
+  --muted: #b7c5ba;
+  --primary: #8fb99b;
+  --primary-strong: #d9eadc;
+  --primary-soft: #203529;
+  --accent: #df8b69;
+  --border: #3d5142;
+  --border-strong: #657b69;
+  --danger: #f2a2a2;
+  --warning: #e6bd71;
+  --focus: #f0a46c;
+  --shadow-short: 0 4px 8px rgb(0 0 0 / 0.25);
 }
 
 * {
@@ -280,6 +300,27 @@ select {
 
 @media (min-width: 48rem) {
   .header-login-link { display: inline-flex; }
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 0.625rem;
+  flex-shrink: 0;
+}
+
+.theme-toggle svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 300ms var(--ease-out), opacity 200ms;
+}
+
+.theme-toggle:active svg {
+  transform: rotate(20deg) scale(0.9);
 }
 
 @media (prefers-reduced-motion: reduce) {

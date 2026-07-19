@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getAuthContext } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function SiteHeader() {
   const auth = await getAuthContext();
@@ -11,6 +12,7 @@ export async function SiteHeader() {
           <span>Rutacafetal</span>
         </Link>
         <nav className="flex items-center gap-2 text-sm font-medium" aria-label="Navegación principal">
+          <ThemeToggle />
           <Link className="button-quiet header-campaigns-link" href="/campanas">Campañas</Link>
           {auth ? (
             <Link className="button-primary" href="/panel">Mi panel</Link>
