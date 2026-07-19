@@ -8,6 +8,10 @@ const migration = readdirSync(migrationsDirectory)
   .sort()
   .map((file) => readFileSync(resolve(migrationsDirectory, file), "utf8"))
   .join("\n");
+const anonymousPoliciesMigration = readFileSync(
+  resolve(migrationsDirectory, "20260719230000_separate_anonymous_rls.sql"),
+  "utf8",
+);
 
 describe("marketplace database security", () => {
   it("habilita RLS en todas las tablas privadas del producto", () => {
@@ -52,5 +56,21 @@ describe("marketplace database security", () => {
     expect(contactPolicy).toContain("private.is_active_role('farmer')");
     expect(contactPolicy).toContain("a.status = 'accepted'");
     expect(contactPolicy).toContain("private.owns_campaign(a.campaign_id)");
+  });
+
+  it("mantiene las políticas anónimas libres de funciones privadas", () => {
+    for (const policy of [
+      "locations_anon_read",
+      "farms_anon_read_published",
+      "campaigns_anon_read_published",
+      "ratings_anon_read_approved",
+    ]) {
+      const policyBlock = anonymousPoliciesMigration
+        .split(`create policy ${policy}`)[1]
+        ?.split(";")[0] ?? "";
+
+      expect(policyBlock).not.toContain("private.");
+      expect(policyBlock).not.toContain("auth.uid()");
+    }
   });
 });
