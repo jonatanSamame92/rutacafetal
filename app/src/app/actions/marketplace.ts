@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProfile, requireRole } from "@/lib/auth";
+import { recordAnalyticsEvent } from "@/lib/analytics";
 import {
   applicationSchema,
   campaignSchema,
@@ -137,12 +138,7 @@ export async function createCampaignAction(_state: ActionState, formData: FormDa
   }).select("id").single();
   if (error || !data) return { ok: false, message: "No pudimos enviar la campaña a revisión." };
 
-  await supabase.from("analytics_events").insert({
-    event_name: "campaign_submitted",
-    actor_id: userId,
-    entity_id: data.id,
-    metadata: {},
-  });
+  await recordAnalyticsEvent("campaign_submitted", userId, data.id);
   revalidatePath("/panel/patron");
   return { ok: true, message: "Campaña enviada. La revisaremos antes de publicarla." };
 }
@@ -167,12 +163,7 @@ export async function createApplicationAction(_state: ActionState, formData: For
   if (error?.code === "23505") return { ok: false, message: "Ya postulaste a esta campaña." };
   if (error || !data) return { ok: false, message: "No pudimos enviar tu postulación." };
 
-  await supabase.from("analytics_events").insert({
-    event_name: "application_created",
-    actor_id: userId,
-    entity_id: data.id,
-    metadata: {},
-  });
+  await recordAnalyticsEvent("application_created", userId, data.id);
   revalidatePath("/panel/trabajador");
   return { ok: true, message: "Postulación enviada. El patrón verá tu experiencia y disponibilidad." };
 }
@@ -222,7 +213,7 @@ export async function createReportAction(_state: ActionState, formData: FormData
     status: "open",
   }).select("id").single();
   if (error || !data) return { ok: false, message: "No pudimos recibir el reporte." };
-  await supabase.from("analytics_events").insert({ event_name: "report_created", actor_id: userId, entity_id: data.id, metadata: {} });
+  await recordAnalyticsEvent("report_created", userId, data.id);
   return { ok: true, message: "Reporte recibido. Solo el equipo de moderación podrá verlo." };
 }
 
@@ -236,7 +227,7 @@ export async function createRatingAction(_state: ActionState, formData: FormData
     comment: formData.get("comment") ?? "",
   });
   if (!parsed.success) return { ok: false, message: firstValidationError(parsed.error) };
-  const { error } = await supabase.from("ratings").insert({
+  const { data, error } = await supabase.from("ratings").insert({
     assignment_id: parsed.data.assignmentId,
     campaign_id: parsed.data.campaignId,
     rater_id: userId,
@@ -244,8 +235,9 @@ export async function createRatingAction(_state: ActionState, formData: FormData
     score: parsed.data.score,
     comment: parsed.data.comment || null,
     status: "pending",
-  });
+  }).select("id").single();
   if (error?.code === "23505") return { ok: false, message: "Ya calificaste esta campaña." };
-  if (error) return { ok: false, message: "No pudimos guardar la calificación." };
+  if (error || !data) return { ok: false, message: "No pudimos guardar la calificación." };
+  await recordAnalyticsEvent("rating_created", userId, data.id);
   return { ok: true, message: "Calificación enviada a moderación." };
 }

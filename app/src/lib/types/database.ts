@@ -10,6 +10,7 @@ export type RatingStatus = "pending" | "approved" | "rejected";
 export type ReportStatus = "open" | "reviewing" | "resolved" | "dismissed";
 export type WorkType = "harvest" | "maintenance" | "postharvest" | "mixed";
 export type PaymentMode = "per_day" | "per_week" | "per_unit";
+export type AnalyticsEventName = "registration_requested" | "campaign_submitted" | "campaign_published" | "application_created" | "application_accepted" | "campaign_completed" | "rating_created" | "report_created" | "whatsapp_opened";
 
 type Table<Row, Insert = Partial<Row>, Update = Partial<Insert>> = {
   Row: Row;

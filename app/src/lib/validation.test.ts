@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizePeruPhone } from "@/lib/phone";
+import { buildSupportContact, normalizePeruPhone } from "@/lib/phone";
 import { campaignSchema, registrationRequestSchema, reportSchema } from "@/lib/validation";
 
 const locationId = "00000000-0000-4000-8000-000000000001";
@@ -8,6 +8,14 @@ describe("normalizePeruPhone", () => {
   it("normaliza celulares locales y conserva el prefijo de Perú", () => {
     expect(normalizePeruPhone("987 654 321")).toBe("+51987654321");
     expect(normalizePeruPhone("+51 987-654-321")).toBe("+51987654321");
+  });
+
+  it("construye un canal de soporte solo con un celular peruano válido", () => {
+    expect(buildSupportContact("987 654 321")).toEqual({
+      label: "987 654 321",
+      url: "https://wa.me/51987654321?text=Hola%2C%20necesito%20ayuda%20con%20mi%20cuenta%20de%20Rutacafetal.",
+    });
+    expect(buildSupportContact("12345")).toBeNull();
   });
 });
 

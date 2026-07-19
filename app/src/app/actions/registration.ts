@@ -89,21 +89,30 @@ export async function approveRegistrationAction(_state: ApprovalState, formData:
     return { ok: false, message: "No pudimos completar el perfil. La cuenta no fue creada." };
   }
 
-  await Promise.all([
-    admin.from("registration_requests").update({
-      status: "approved",
-      reviewed_by: userId,
-      reviewed_at: new Date().toISOString(),
-      created_user_id: created.user.id,
-    }).eq("id", requestId),
-    admin.from("moderation_events").insert({
-      admin_id: userId,
-      entity_type: "registration_request",
-      entity_id: requestId,
-      action: "approved",
-      note: null,
-    }),
-  ]);
+  const { data: approvedRequest, error: approvalError } = await admin.from("registration_requests").update({
+    status: "approved",
+    reviewed_by: userId,
+    reviewed_at: new Date().toISOString(),
+    created_user_id: created.user.id,
+  }).eq("id", requestId).eq("status", "pending").select("id").maybeSingle();
+
+  if (approvalError || !approvedRequest) {
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { ok: false, message: "La solicitud cambió mientras se aprobaba. La cuenta no fue creada." };
+  }
+
+  const { error: auditError } = await admin.from("moderation_events").insert({
+    admin_id: userId,
+    entity_type: "registration_request",
+    entity_id: requestId,
+    action: "approved",
+    note: null,
+  });
+  if (auditError) {
+    await admin.from("registration_requests").update({ status: "pending", reviewed_by: null, reviewed_at: null, created_user_id: null }).eq("id", requestId);
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { ok: false, message: "No pudimos registrar la auditoría. La cuenta no fue creada." };
+  }
 
   revalidatePath("/panel/admin");
   return {
@@ -119,20 +128,18 @@ export async function rejectRegistrationAction(formData: FormData) {
   const note = String(formData.get("note") ?? "").slice(0, 1000);
   if (!requestId) return;
   const admin = getAdminClient();
-  await Promise.all([
-    admin.from("registration_requests").update({
-      status: "rejected",
-      reviewed_by: userId,
-      reviewed_at: new Date().toISOString(),
-      internal_note: note || null,
-    }).eq("id", requestId).eq("status", "pending"),
-    admin.from("moderation_events").insert({
-      admin_id: userId,
-      entity_type: "registration_request",
-      entity_id: requestId,
-      action: "rejected",
-      note: note || null,
-    }),
-  ]);
+  const { data } = await admin.from("registration_requests").update({
+    status: "rejected",
+    reviewed_by: userId,
+    reviewed_at: new Date().toISOString(),
+    internal_note: note || null,
+  }).eq("id", requestId).eq("status", "pending").select("id").maybeSingle();
+  if (data) await admin.from("moderation_events").insert({
+    admin_id: userId,
+    entity_type: "registration_request",
+    entity_id: requestId,
+    action: "rejected",
+    note: note || null,
+  });
   revalidatePath("/panel/admin");
 }

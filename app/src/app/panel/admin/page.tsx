@@ -13,6 +13,17 @@ type ReportItem = { id: string; type: string; description: string; evidence_path
 type RatingItem = { id: string; score: number; comment: string | null; status: RatingStatus; rater: { full_name: string } | null; rated: { full_name: string } | null };
 
 const reportTypeLabels: Record<string, string> = { no_payment: "Falta de pago", abuse: "Maltrato o abuso", theft: "Robo", unsafe_conditions: "Condiciones inseguras", fraud: "Información falsa", other: "Otro" };
+const analyticsCards = [
+  ["registration_requested", "Solicitudes"],
+  ["campaign_submitted", "Campañas enviadas"],
+  ["campaign_published", "Campañas publicadas"],
+  ["application_created", "Postulaciones"],
+  ["application_accepted", "Aceptaciones"],
+  ["campaign_completed", "Trabajos completados"],
+  ["rating_created", "Calificaciones"],
+  ["report_created", "Reportes"],
+  ["whatsapp_opened", "Contactos abiertos"],
+] as const;
 
 export default async function AdminPage() {
   await requireAdmin();
@@ -37,7 +48,7 @@ export default async function AdminPage() {
 
   return <div className="space-y-9">
     <header><p className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--primary)]">Administración</p><h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Operación de Rutacafetal</h1><p className="mt-2 max-w-2xl text-[var(--muted)]">Aprueba altas y campañas, revisa reputación y atiende incidentes desde un solo lugar.</p></header>
-    <section aria-labelledby="resumen"><h2 id="resumen" className="text-2xl font-semibold">Últimos 30 días</h2><div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[["registration_requested", "Solicitudes"], ["campaign_published", "Campañas publicadas"], ["application_created", "Postulaciones"], ["whatsapp_opened", "Contactos abiertos"]].map(([key, label]) => <article key={key} className="surface p-5"><p className="text-sm text-[var(--muted)]">{label}</p><p className="mt-2 text-3xl font-semibold">{counts[key] ?? 0}</p></article>)}</div></section>
+    <section aria-labelledby="resumen"><h2 id="resumen" className="text-2xl font-semibold">Últimos 30 días</h2><div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{analyticsCards.map(([key, label]) => <article key={key} className="surface p-5"><p className="text-sm text-[var(--muted)]">{label}</p><p className="mt-2 text-3xl font-semibold">{counts[key] ?? 0}</p></article>)}</div></section>
 
     <section><h2 className="text-2xl font-semibold">Solicitudes de registro <span className="text-[var(--muted)]">({registrations.length})</span></h2><div className="mt-4 grid gap-4">{registrations.length ? registrations.map((request) => <article className="surface p-5" key={request.id}><div className="grid gap-4 lg:grid-cols-[1fr_auto]"><div><p className="text-sm font-semibold text-[var(--primary)]">{request.requested_role === "worker" ? "Trabajador" : "Patrón"} · {request.locations?.district ?? "Sin distrito"}</p><h3 className="mt-1 text-xl font-semibold">{request.full_name}</h3><p className="mt-1 text-sm text-[var(--muted)]">{request.phone}{request.email ? ` · ${request.email}` : ""} · {formatDate(request.created_at.slice(0, 10))}</p>{request.note ? <p className="mt-3 text-sm">{request.note}</p> : null}</div><div className="flex min-w-56 flex-col gap-3"><ApproveRegistrationForm requestId={request.id} /><form action={rejectRegistrationAction} className="space-y-2"><input type="hidden" name="requestId" value={request.id} /><input className="field" name="note" placeholder="Motivo interno" /><button className="button-danger w-full" type="submit">Rechazar</button></form></div></div></article>) : <p className="surface p-5 text-sm text-[var(--muted)]">No hay solicitudes pendientes.</p>}</div></section>
 

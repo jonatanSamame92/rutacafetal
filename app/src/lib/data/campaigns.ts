@@ -24,9 +24,9 @@ type CampaignQueryRow = {
   locations: { district: string; province: string } | null;
 };
 
-type RatingStats = { average: number; count: number };
+type RatingStats = { average: number; count: number; comments: string[] };
 
-function toPublicCampaign(row: CampaignQueryRow, rating: RatingStats = { average: 0, count: 0 }): PublicCampaign {
+function toPublicCampaign(row: CampaignQueryRow, rating: RatingStats = { average: 0, count: 0, comments: [] }): PublicCampaign {
   return {
     id: row.id,
     slug: row.slug,
@@ -49,6 +49,7 @@ function toPublicCampaign(row: CampaignQueryRow, rating: RatingStats = { average
     safetyNote: row.safety_note,
     rating: rating.average,
     completedCampaigns: rating.count,
+    ratingComments: rating.comments,
     status: row.status,
   };
 }
@@ -99,9 +100,9 @@ export async function getPublicCampaigns(filters: CampaignFilters = {}): Promise
   if (ownerIds.length) {
     const { data: ratings } = await supabase.from("ratings").select("rated_user_id, score").eq("status", "approved").in("rated_user_id", ownerIds);
     for (const rating of ratings ?? []) {
-      const current = ratingMap.get(rating.rated_user_id) ?? { average: 0, count: 0 };
+      const current = ratingMap.get(rating.rated_user_id) ?? { average: 0, count: 0, comments: [] };
       const nextCount = current.count + 1;
-      ratingMap.set(rating.rated_user_id, { average: ((current.average * current.count) + rating.score) / nextCount, count: nextCount });
+      ratingMap.set(rating.rated_user_id, { average: ((current.average * current.count) + rating.score) / nextCount, count: nextCount, comments: [] });
     }
   }
   const campaigns = rows.map((row) => toPublicCampaign(row, row.farms?.owner_id ? ratingMap.get(row.farms.owner_id) : undefined));
@@ -122,8 +123,12 @@ export async function getPublicCampaign(slug: string) {
   const row = data as unknown as CampaignQueryRow;
   let stats: RatingStats | undefined;
   if (row.farms?.owner_id) {
-    const { data: ratings } = await supabase.from("ratings").select("score").eq("status", "approved").eq("rated_user_id", row.farms.owner_id);
-    if (ratings?.length) stats = { average: ratings.reduce((sum, rating) => sum + rating.score, 0) / ratings.length, count: ratings.length };
+    const { data: ratings } = await supabase.from("ratings").select("score, comment").eq("status", "approved").eq("rated_user_id", row.farms.owner_id).order("created_at", { ascending: false }).limit(30);
+    if (ratings?.length) stats = {
+      average: ratings.reduce((sum, rating) => sum + rating.score, 0) / ratings.length,
+      count: ratings.length,
+      comments: ratings.flatMap((rating) => rating.comment ? [rating.comment] : []).slice(0, 3),
+    };
   }
   return toPublicCampaign(row, stats);
 }

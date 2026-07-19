@@ -22,6 +22,7 @@ export type PublicCampaign = {
   safetyNote: string;
   rating: number;
   completedCampaigns: number;
+  ratingComments?: string[];
   status: CampaignStatus;
   isDemo?: boolean;
 };

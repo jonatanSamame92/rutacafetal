@@ -189,7 +189,7 @@ create table public.contact_events (
 
 create table public.analytics_events (
   id uuid primary key default gen_random_uuid(),
-  event_name text not null check (event_name in ('registration_requested', 'campaign_submitted', 'campaign_published', 'application_created', 'application_accepted', 'campaign_completed', 'report_created', 'whatsapp_opened')),
+  event_name text not null check (event_name in ('registration_requested', 'campaign_submitted', 'campaign_published', 'application_created', 'application_accepted', 'campaign_completed', 'rating_created', 'report_created', 'whatsapp_opened')),
   actor_id uuid references public.profiles(id) on delete set null,
   entity_id uuid,
   metadata jsonb not null default '{}'::jsonb,
@@ -213,7 +213,23 @@ set search_path = ''
 as $$
   select exists (
     select 1 from public.profiles
-    where id = auth.uid() and role = 'admin' and status = 'active'
+    where id = auth.uid() and role = 'admin' and status = 'active' and not must_change_password
+  );
+$$;
+
+create or replace function private.is_active_role(expected_role public.user_role)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and role = expected_role
+      and status = 'active'
+      and not must_change_password
   );
 $$;
 
@@ -363,7 +379,7 @@ declare
   accepted_count integer;
 begin
   select * into app from public.applications where id = target_application_id for update;
-  if app.id is null or not private.owns_campaign(app.campaign_id) then
+  if not private.is_active_role('farmer') or app.id is null or not private.owns_campaign(app.campaign_id) then
     raise exception 'Postulación no disponible';
   end if;
   if app.status <> 'pending' then
@@ -405,7 +421,7 @@ as $$
 declare app public.applications%rowtype;
 begin
   select * into app from public.applications where id = target_application_id for update;
-  if app.id is null or not private.owns_campaign(app.campaign_id) or app.status <> 'pending' then
+  if not private.is_active_role('farmer') or app.id is null or not private.owns_campaign(app.campaign_id) or app.status <> 'pending' then
     raise exception 'Postulación no disponible';
   end if;
   update public.applications set status = 'rejected', decided_at = now()
@@ -422,6 +438,9 @@ set search_path = ''
 as $$
 declare app public.applications%rowtype;
 begin
+  if not private.is_active_role('worker') then
+    raise exception 'La cuenta no está habilitada para retirar postulaciones';
+  end if;
   update public.applications
   set status = 'withdrawn'
   where id = target_application_id and worker_id = auth.uid() and status = 'pending'
@@ -444,7 +463,7 @@ begin
   from public.assignments
   where id = target_assignment_id
   for update;
-  if assignment_row.id is null or not private.owns_campaign(assignment_row.campaign_id) then
+  if not private.is_active_role('farmer') or assignment_row.id is null or not private.owns_campaign(assignment_row.campaign_id) then
     raise exception 'Asignación no disponible';
   end if;
   if assignment_row.status <> 'active' then
@@ -565,29 +584,29 @@ using (exists (select 1 from public.campaigns c where c.farm_id = farms.id and c
 create policy farms_owner_read on public.farms for select to authenticated
 using (owner_id = auth.uid() or (select private.is_admin()));
 create policy farms_owner_insert on public.farms for insert to authenticated
-with check (owner_id = auth.uid() and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'farmer' and p.status = 'active'));
+with check (owner_id = auth.uid() and (select private.is_active_role('farmer')));
 create policy farms_owner_update on public.farms for update to authenticated
-using (owner_id = auth.uid() or (select private.is_admin()))
-with check (owner_id = auth.uid() or (select private.is_admin()));
+using ((owner_id = auth.uid() and (select private.is_active_role('farmer'))) or (select private.is_admin()))
+with check ((owner_id = auth.uid() and (select private.is_active_role('farmer'))) or (select private.is_admin()));
 create policy farms_owner_delete on public.farms for delete to authenticated
-using (owner_id = auth.uid() or (select private.is_admin()));
+using ((owner_id = auth.uid() and (select private.is_active_role('farmer'))) or (select private.is_admin()));
 
 create policy campaigns_public_read on public.campaigns for select to anon, authenticated
 using (status = 'published' or (select private.owns_campaign(id)) or (select private.is_admin()));
 create policy campaigns_owner_insert on public.campaigns for insert to authenticated
-with check ((select private.owns_farm(farm_id)) and status in ('draft', 'pending_review'));
+with check ((select private.is_active_role('farmer')) and (select private.owns_farm(farm_id)) and status in ('draft', 'pending_review'));
 create policy campaigns_owner_update on public.campaigns for update to authenticated
-using ((select private.owns_campaign(id)) or (select private.is_admin()))
-with check ((select private.owns_farm(farm_id)) or (select private.is_admin()));
+using (((select private.is_active_role('farmer')) and (select private.owns_campaign(id))) or (select private.is_admin()))
+with check (((select private.is_active_role('farmer')) and (select private.owns_farm(farm_id))) or (select private.is_admin()));
 create policy campaigns_owner_delete on public.campaigns for delete to authenticated
-using (((select private.owns_campaign(id)) and status = 'draft') or (select private.is_admin()));
+using (((select private.is_active_role('farmer')) and (select private.owns_campaign(id)) and status = 'draft') or (select private.is_admin()));
 
 create policy applications_participants_read on public.applications for select to authenticated
 using (worker_id = auth.uid() or (select private.owns_campaign(campaign_id)) or (select private.is_admin()));
 create policy applications_worker_insert on public.applications for insert to authenticated
 with check (
   worker_id = auth.uid() and status = 'pending'
-  and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'worker' and p.status = 'active')
+  and (select private.is_active_role('worker'))
   and exists (select 1 from public.campaigns c where c.id = campaign_id and c.status = 'published')
 );
 create policy assignments_participants_read on public.assignments for select to authenticated
@@ -596,14 +615,26 @@ using (worker_id = auth.uid() or (select private.owns_campaign(campaign_id)) or 
 create policy ratings_public_approved_read on public.ratings for select to anon, authenticated
 using (status = 'approved' or rater_id = auth.uid() or rated_user_id = auth.uid() or (select private.is_admin()));
 create policy ratings_participant_insert on public.ratings for insert to authenticated
-with check (rater_id = auth.uid() and status = 'pending');
+with check (
+  rater_id = auth.uid() and status = 'pending'
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.status = 'active' and not p.must_change_password
+  )
+);
 create policy ratings_admin_update on public.ratings for update to authenticated
 using ((select private.is_admin())) with check ((select private.is_admin()));
 
 create policy reports_reporter_read on public.reports for select to authenticated
 using (reporter_id = auth.uid() or (select private.is_admin()));
 create policy reports_user_insert on public.reports for insert to authenticated
-with check (reporter_id = auth.uid());
+with check (
+  reporter_id = auth.uid()
+  and exists (
+    select 1 from public.profiles p
+    where p.id = auth.uid() and p.status = 'active' and not p.must_change_password
+  )
+);
 create policy reports_admin_update on public.reports for update to authenticated
 using ((select private.is_admin())) with check ((select private.is_admin()));
 
@@ -620,7 +651,7 @@ using (
 );
 create policy contact_farmer_insert on public.contact_events for insert to authenticated
 with check (
-  actor_id = auth.uid() and exists (
+  actor_id = auth.uid() and (select private.is_active_role('farmer')) and exists (
     select 1 from public.applications a
     where a.id = application_id and a.status = 'accepted' and private.owns_campaign(a.campaign_id)
   )
@@ -628,15 +659,12 @@ with check (
 
 create policy analytics_admin_read on public.analytics_events for select to authenticated
 using ((select private.is_admin()));
-create policy analytics_authenticated_insert on public.analytics_events for insert to authenticated
-with check (actor_id = auth.uid() or actor_id is null);
-
 revoke all on all tables in schema public from anon, authenticated;
 grant select on public.locations, public.farms, public.campaigns, public.ratings to anon;
 grant select on all tables in schema public to authenticated;
 grant insert, update on public.profiles to authenticated;
 grant insert, update, delete on public.farms, public.campaigns to authenticated;
-grant insert on public.applications, public.ratings, public.reports, public.contact_events, public.analytics_events to authenticated;
+grant insert on public.applications, public.ratings, public.reports, public.contact_events to authenticated;
 grant insert, update, delete on public.locations to authenticated;
 grant update on public.registration_requests, public.moderation_events to authenticated;
 grant insert on public.moderation_events to authenticated;

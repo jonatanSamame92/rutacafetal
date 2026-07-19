@@ -14,3 +14,13 @@ export function formatPeruPhone(value: string) {
 export function toWhatsAppUrl(phone: string, message: string) {
   return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 }
+
+export function buildSupportContact(configuredPhone?: string) {
+  if (!configuredPhone?.trim()) return null;
+  const phone = normalizePeruPhone(configuredPhone.trim());
+  if (!/^\+51[0-9]{9}$/.test(phone)) return null;
+  return {
+    label: formatPeruPhone(phone),
+    url: toWhatsAppUrl(phone, "Hola, necesito ayuda con mi cuenta de Rutacafetal."),
+  };
+}

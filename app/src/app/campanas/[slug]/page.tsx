@@ -33,7 +33,11 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
               <section><h2 className="text-xl font-semibold">Ubicación aproximada</h2><p className="mt-3 leading-7 text-[var(--muted)]">{campaign.locationReference}</p></section>
               <section><h2 className="text-xl font-semibold">Seguridad y normas</h2><p className="mt-3 leading-7 text-[var(--muted)]">{campaign.safetyNote}</p></section>
             </div>
-            <section className="mt-8 border-t border-[var(--border)] pt-7"><h2 className="text-xl font-semibold">Confianza de la finca</h2><p className="mt-3 text-[var(--muted)]">{campaign.rating > 0 ? `${campaign.rating.toFixed(1)} de 5, basada en campañas completadas y comentarios moderados.` : "La finca aún no tiene calificaciones públicas."}</p></section>
+            <section className="mt-8 border-t border-[var(--border)] pt-7">
+              <h2 className="text-xl font-semibold">Confianza de la finca</h2>
+              <p className="mt-3 text-[var(--muted)]">{campaign.rating > 0 ? `${campaign.rating.toFixed(1)} de 5, basada en ${campaign.completedCampaigns} calificaciones moderadas.` : "La finca aún no tiene calificaciones públicas."}</p>
+              {campaign.ratingComments?.length ? <div className="mt-5 grid gap-3">{campaign.ratingComments.map((comment, index) => <blockquote className="rounded-lg bg-[var(--surface-muted)] p-4 text-sm leading-6 text-[var(--muted)]" key={`${campaign.id}-${index}`}>{comment}</blockquote>)}</div> : null}
+            </section>
           </article>
 
           <aside className="surface h-fit p-5 lg:sticky lg:top-24">
