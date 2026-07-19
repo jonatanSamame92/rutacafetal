@@ -15,6 +15,11 @@ export function toWhatsAppUrl(phone: string, message: string) {
   return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 }
 
+export function phoneToAuthEmail(value: string) {
+  const phone = normalizePeruPhone(value);
+  return `${phone.replace(/\D/g, "")}@login.rutacafetal.invalid`;
+}
+
 export function buildSupportContact(configuredPhone?: string) {
   if (!configuredPhone?.trim()) return null;
   const phone = normalizePeruPhone(configuredPhone.trim());

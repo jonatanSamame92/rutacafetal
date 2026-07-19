@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig, hasSupabasePublicConfig } from "@/lib/supabase/config";
+import { phoneToAuthEmail } from "@/lib/phone";
 import { firstValidationError, loginSchema, passwordSchema } from "@/lib/validation";
 import type { ActionState } from "@/app/actions/types";
 
@@ -20,7 +21,10 @@ export async function loginAction(_state: ActionState, formData: FormData): Prom
   if (!parsed.success) return { ok: false, message: firstValidationError(parsed.error) };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { error } = await supabase.auth.signInWithPassword({
+    email: phoneToAuthEmail(parsed.data.phone),
+    password: parsed.data.password,
+  });
   if (error) return { ok: false, message: "No pudimos ingresar. Revisa tu celular y contraseña." };
 
   revalidatePath("/", "layout");

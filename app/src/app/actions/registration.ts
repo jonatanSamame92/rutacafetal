@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/config";
 import { requireAdmin } from "@/lib/auth";
+import { phoneToAuthEmail } from "@/lib/phone";
 import { firstValidationError, registrationRequestSchema } from "@/lib/validation";
 import type { ActionState, ApprovalState } from "@/app/actions/types";
 import type { UserRole } from "@/lib/types/database";
@@ -66,8 +67,10 @@ export async function approveRegistrationAction(_state: ApprovalState, formData:
 
   const temporaryPassword = `Ruta!${randomBytes(6).toString("base64url")}7`;
   const { data: created, error: authError } = await admin.auth.admin.createUser({
+    email: phoneToAuthEmail(request.phone),
     phone: request.phone,
     password: temporaryPassword,
+    email_confirm: true,
     phone_confirm: true,
     app_metadata: { role: request.requested_role },
     user_metadata: { full_name: request.full_name },

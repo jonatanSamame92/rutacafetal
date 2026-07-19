@@ -23,6 +23,8 @@ Usa proyectos Supabase separados para desarrollo y producción. En Vercel config
 
 Los teléfonos viven en Supabase Auth y no en `public.profiles`. El patrón obtiene el enlace de WhatsApp únicamente para una postulación aceptada de una campaña propia. Para recuperar acceso, genera una nueva clave temporal desde Administración; la persona deberá cambiarla al ingresar.
 
+El formulario continúa pidiendo celular y contraseña. Como el piloto no usa OTP ni proveedor SMS, el servidor deriva un correo técnico no entregable desde el celular para autenticar la contraseña; el teléfono real permanece en Supabase Auth y se usa únicamente en el flujo protegido de WhatsApp.
+
 ## Lanzamiento
 
 Mantén las campañas de ejemplo marcadas hasta contar con campañas reales aprobadas. Prueba primero en Jaén y un distrito cercano, publica enlaces con parámetros UTM y revisa semanalmente el embudo antes de ampliar zonas.
