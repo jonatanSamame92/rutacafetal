@@ -41,6 +41,14 @@ describe("marketplace database security", () => {
     expect(withdrawFunction).toContain("private.is_active_role('worker')");
   });
 
+  it("solo permite que una cuenta activa complete su propio cambio de clave temporal", () => {
+    const migration = readFileSync(resolve(process.cwd(), "../supabase/migrations/20260719174748_allow_self_complete_password_change.sql"), "utf8");
+    expect(migration).toContain("old.must_change_password");
+    expect(migration).toContain("not new.must_change_password");
+    expect(migration).toContain("old.status = 'active'");
+    expect(migration).toContain("old.id = (select auth.uid())");
+  });
+
   it("reserva la escritura de analítica para operaciones de servidor", () => {
     expect(migration).not.toContain("create policy analytics_authenticated_insert");
     expect(migration).not.toMatch(/grant insert on [^;]*public\.analytics_events[^;]*to authenticated/);

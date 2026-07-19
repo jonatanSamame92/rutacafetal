@@ -3,8 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getAdminClient } from "@/lib/supabase/admin";
-import { hasSupabaseAdminConfig, hasSupabasePublicConfig } from "@/lib/supabase/config";
+import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { phoneToAuthEmail } from "@/lib/phone";
 import { firstValidationError, loginSchema, passwordSchema } from "@/lib/validation";
 import type { ActionState } from "@/app/actions/types";
@@ -40,8 +39,8 @@ export async function logoutAction() {
 }
 
 export async function changePasswordAction(_state: ActionState, formData: FormData): Promise<ActionState> {
-  if (!hasSupabaseAdminConfig()) {
-    return { ok: false, message: "La administración de cuentas aún no está configurada." };
+  if (!hasSupabasePublicConfig()) {
+    return { ok: false, message: "El acceso todavía no está configurado." };
   }
   const parsed = passwordSchema.safeParse({
     password: formData.get("password"),
@@ -57,12 +56,13 @@ export async function changePasswordAction(_state: ActionState, formData: FormDa
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { ok: false, message: "No pudimos guardar la contraseña. Inténtalo nuevamente." };
 
-  const admin = getAdminClient();
-  const { error: profileError } = await admin
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .update({ must_change_password: false })
-    .eq("id", userId);
-  if (profileError) return { ok: false, message: "La contraseña cambió, pero falta habilitar el perfil. Contacta al administrador." };
+    .eq("id", userId)
+    .select("id")
+    .maybeSingle();
+  if (profileError || !profile) return { ok: false, message: "La contraseña cambió, pero falta habilitar el perfil. Contacta al administrador." };
 
   revalidatePath("/", "layout");
   redirect("/panel");
