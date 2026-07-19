@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { requireProfile, requireRole } from "@/lib/auth";
 import { recordAnalyticsEvent } from "@/lib/analytics";
@@ -116,8 +117,10 @@ export async function createCampaignAction(_state: ActionState, formData: FormDa
   });
   if (!parsed.success) return { ok: false, message: firstValidationError(parsed.error) };
 
-  const slug = `${slugify(parsed.data.title)}-${Date.now().toString(36)}`;
-  const { data, error } = await supabase.from("campaigns").insert({
+  const campaignId = randomUUID();
+  const slug = `${slugify(parsed.data.title)}-${campaignId.slice(0, 8)}`;
+  const { error } = await supabase.from("campaigns").insert({
+    id: campaignId,
     farm_id: parsed.data.farmId,
     slug,
     title: parsed.data.title,
@@ -135,10 +138,10 @@ export async function createCampaignAction(_state: ActionState, formData: FormDa
     transport_provided: parsed.data.transportProvided,
     safety_note: parsed.data.safetyNote,
     status: "pending_review",
-  }).select("id").single();
-  if (error || !data) return { ok: false, message: "No pudimos enviar la campaña a revisión." };
+  });
+  if (error) return { ok: false, message: "No pudimos enviar la campaña a revisión." };
 
-  await recordAnalyticsEvent("campaign_submitted", userId, data.id);
+  await recordAnalyticsEvent("campaign_submitted", userId, campaignId);
   revalidatePath("/panel/patron");
   return { ok: true, message: "Campaña enviada. La revisaremos antes de publicarla." };
 }
