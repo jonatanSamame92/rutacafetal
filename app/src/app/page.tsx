@@ -24,7 +24,7 @@ export default async function HomePage() {
             </form>
           </div>
           <div className="relative min-h-[22rem] overflow-hidden rounded-2xl md:min-h-[34rem]">
-            <Image src="/images/hero-cafetal.png" alt="Dos caficultores coordinan una jornada de cosecha en un cafetal de Jaén" fill priority sizes="(max-width: 768px) 100vw, 48vw" className="object-cover object-[62%_center]" />
+            <Image src="/images/hero-cafetal.webp" alt="Dos caficultores coordinan una jornada de cosecha en un cafetal de Jaén" fill priority sizes="(max-width: 768px) 100vw, 48vw" className="object-cover object-[62%_center]" />
           </div>
         </div>
       </section>
