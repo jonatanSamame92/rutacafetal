@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CampaignCard } from "@/components/campaign-card";
 import { PublicShell } from "@/components/public-shell";
 import { getLocations, getPublicCampaigns } from "@/lib/data/campaigns";
@@ -30,7 +31,7 @@ export default async function CampaignsPage({ searchParams }: { searchParams: Pr
         {campaigns.length ? (
           <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-3">{campaigns.map((campaign) => <CampaignCard key={campaign.id} campaign={campaign} />)}</div>
         ) : (
-          <div className="surface mt-4 p-7"><h2 className="text-xl font-semibold">No encontramos campañas con esos filtros</h2><p className="mt-2 text-[var(--muted)]">Prueba con otro distrito o quita una condición para ampliar la búsqueda.</p><a className="button-secondary mt-5" href="/campanas">Limpiar filtros</a></div>
+          <div className="surface mt-4 p-7"><h2 className="text-xl font-semibold">No encontramos campañas con esos filtros</h2><p className="mt-2 text-[var(--muted)]">Prueba con otro distrito o quita una condición para ampliar la búsqueda.</p><Link className="button-secondary mt-5" href="/campanas">Limpiar filtros</Link></div>
         )}
       </div>
     </PublicShell>

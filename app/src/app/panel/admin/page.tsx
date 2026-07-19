@@ -4,6 +4,7 @@ import { ApproveRegistrationForm, ResetPasswordForm } from "@/components/admin/c
 import { requireAdmin } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase/admin";
 import { formatDate } from "@/lib/format";
+import { daysAgoIso } from "@/lib/time";
 import type { CampaignStatus, RatingStatus, ReportStatus, UserRole } from "@/lib/types/database";
 
 type Registration = { id: string; full_name: string; phone: string; requested_role: UserRole; email: string | null; note: string | null; created_at: string; locations: { district: string } | null };
@@ -16,7 +17,7 @@ const reportTypeLabels: Record<string, string> = { no_payment: "Falta de pago", 
 export default async function AdminPage() {
   await requireAdmin();
   const admin = getAdminClient();
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const since = daysAgoIso(30);
   const [registrationsResult, campaignsResult, reportsResult, ratingsResult, profilesResult, locationsResult, analyticsResult] = await Promise.all([
     admin.from("registration_requests").select("id, full_name, phone, requested_role, email, note, created_at, locations(district)").eq("status", "pending").order("created_at"),
     admin.from("campaigns").select("id, title, description, safety_note, start_date, end_date, workers_needed, status, farms(name, profiles!farms_owner_id_fkey(full_name)), locations(district)").eq("status", "pending_review").order("created_at"),

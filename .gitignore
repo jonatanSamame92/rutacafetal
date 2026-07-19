@@ -1,8 +1,7 @@
 # Dependencias y builds locales
 node_modules/
-node_modules.incomplete/
+node_modules.*/
 .screenshots/
-node_modules.*
 .next/
 out/
 dist/
