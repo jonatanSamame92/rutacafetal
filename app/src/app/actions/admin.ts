@@ -77,20 +77,26 @@ export async function resetPasswordAction(_state: ApprovalState, formData: FormD
   const profileId = String(formData.get("profileId") ?? "");
   if (!profileId || profileId === userId) return { ok: false, message: "No se puede restablecer esa cuenta." };
   const admin = getAdminClient();
+  const adminSession = await createClient();
   const [{ data: profile }, { data: authUser, error: authError }] = await Promise.all([
-    admin.from("profiles").select("full_name, must_change_password").eq("id", profileId).maybeSingle(),
+    adminSession.from("profiles").select("full_name, must_change_password").eq("id", profileId).maybeSingle(),
     admin.auth.admin.getUserById(profileId),
   ]);
   if (authError || !authUser.user?.phone || !profile) return { ok: false, message: "No encontramos una cuenta con celular." };
   const temporaryPassword = `Ruta!${randomBytes(6).toString("base64url")}8`;
-  const { error: profileError } = await admin.from("profiles").update({ must_change_password: true }).eq("id", profileId);
-  if (profileError) return { ok: false, message: "No pudimos preparar la recuperación de esta cuenta." };
+  const { data: preparedProfile, error: profileError } = await adminSession
+    .from("profiles")
+    .update({ must_change_password: true })
+    .eq("id", profileId)
+    .select("id")
+    .maybeSingle();
+  if (profileError || !preparedProfile) return { ok: false, message: "No pudimos preparar la clave temporal de esta cuenta." };
   const { error } = await admin.auth.admin.updateUserById(profileId, { password: temporaryPassword });
   if (error) {
-    await admin.from("profiles").update({ must_change_password: profile.must_change_password }).eq("id", profileId);
+    await adminSession.from("profiles").update({ must_change_password: profile.must_change_password }).eq("id", profileId);
     return { ok: false, message: "No pudimos restablecer la contraseña." };
   }
-  await admin.from("moderation_events").insert({ admin_id: userId, entity_type: "profile", entity_id: profileId, action: "password_reset", note: null });
+  await adminSession.from("moderation_events").insert({ admin_id: userId, entity_type: "profile", entity_id: profileId, action: "password_reset", note: null });
   return { ok: true, message: "Contraseña temporal creada. Cópiala ahora.", credentials: { fullName: profile.full_name, phone: authUser.user.phone, temporaryPassword } };
 }
 
