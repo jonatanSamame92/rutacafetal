@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { recordAnalyticsEvent } from "@/lib/analytics";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/validation";
 import type { ApprovalState } from "@/app/actions/types";
 
