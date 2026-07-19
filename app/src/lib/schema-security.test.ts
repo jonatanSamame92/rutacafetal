@@ -1,8 +1,13 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync(resolve(process.cwd(), "..", "supabase", "migrations", "20260718173000_initial_marketplace_schema.sql"), "utf8");
+const migrationsDirectory = resolve(process.cwd(), "..", "supabase", "migrations");
+const migration = readdirSync(migrationsDirectory)
+  .filter((file) => file.endsWith(".sql"))
+  .sort()
+  .map((file) => readFileSync(resolve(migrationsDirectory, file), "utf8"))
+  .join("\n");
 
 describe("marketplace database security", () => {
   it("habilita RLS en todas las tablas privadas del producto", () => {
@@ -36,6 +41,10 @@ describe("marketplace database security", () => {
     expect(migration).not.toContain("create policy analytics_authenticated_insert");
     expect(migration).not.toMatch(/grant insert on [^;]*public\.analytics_events[^;]*to authenticated/);
     expect(migration).toContain("'rating_created'");
+  });
+
+  it("retira el acceso a la función auxiliar de bootstrap", () => {
+    expect(migration).toContain("revoke execute on function public.rls_auto_enable() from public, anon, authenticated");
   });
 
   it("protege WhatsApp con aceptación y propiedad de campaña", () => {
