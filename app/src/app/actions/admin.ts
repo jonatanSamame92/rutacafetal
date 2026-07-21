@@ -17,14 +17,14 @@ export async function moderateCampaignAction(formData: FormData) {
   if (!campaignId || !["published", "rejected"].includes(decision)) return;
   if (decision === "rejected" && note.trim().length < 10) return;
 
-  const admin = getAdminClient();
-  const { data } = await admin.from("campaigns").update({
+  const adminSession = await createClient();
+  const { data } = await adminSession.from("campaigns").update({
     status: decision as "published" | "rejected",
     moderation_note: note || null,
     published_at: decision === "published" ? new Date().toISOString() : null,
   }).eq("id", campaignId).eq("status", "pending_review").select("id").maybeSingle();
   if (!data) return;
-  await admin.from("moderation_events").insert({
+  await adminSession.from("moderation_events").insert({
     admin_id: userId,
     entity_type: "campaign",
     entity_id: campaignId,
